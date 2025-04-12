@@ -33,7 +33,7 @@ if __name__ == '__main__':
     asr_model = nemo_asr.models.EncDecCTCModel.restore_from(model_path)
     
     # Укажите абсолютный путь к файлу
-    audio_file = "/001ce26c07c20eaa0d666b824c6c6924.wav"
+    audio_file = "https://github.com/sberdevices/golos/raw/master/examples/data/001ce26c07c20eaa0d666b824c6c6924.wav"
     
     # Проверка формата файла
     if not audio_file.endswith('.wav'):
