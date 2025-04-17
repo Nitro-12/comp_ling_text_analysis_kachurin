@@ -2,7 +2,6 @@ import numpy as np
 import nemo.collections.asr as nemo_asr
 from fastapi import File, UploadFile, FastAPI
 from typing import List
-import os
 
 if not hasattr(np, 'sctypes'):
     np.sctypes = {
@@ -14,16 +13,25 @@ if not hasattr(np, 'sctypes'):
 
 app = FastAPI()
 
+# Загрузка модели
 model_path = "QuartzNet15x5_golos_nemo.nemo"
 asr_model = nemo_asr.models.EncDecCTCModel.restore_from(model_path)
 
+# Очиcnrf конфигурацию от train/val/test секций
+asr_model.cfg.train_ds = None
+asr_model.cfg.validation_ds = None
+asr_model.cfg.test_ds = None
+
+# Сохранение загруженного файла на диск
 def save_file(filename, data):
     with open(filename, 'wb') as f:
         f.write(data)
 
+# Распознование аудиофайлов
 def process_files(files):
     return asr_model.transcribe(files, batch_size=20)
 
+# POST-запрос на загрузку файлов
 @app.post("/upload")
 async def upload(files: List[UploadFile] = File(...)):
     audioFiles = []
@@ -31,8 +39,10 @@ async def upload(files: List[UploadFile] = File(...)):
         contents = await file.read()
         save_file(file.filename, contents)
         audioFiles.append(file.filename)
-    return {"text": process_files(audioFiles)}
+    result = process_files(audioFiles)
+    return {"text": result}
 
+# Проверочный корень
 @app.get("/")
 async def root():
     return {"message": "Server is working"}
